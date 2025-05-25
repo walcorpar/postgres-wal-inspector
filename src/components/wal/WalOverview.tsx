@@ -1,7 +1,7 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { CheckCircle, AlertTriangle, XCircle, Activity } from "lucide-react";
+import { CheckCircle, AlertTriangle, XCircle, Activity, Database } from "lucide-react";
 
 export const WalOverview = () => {
   // Mock data - in real implementation, this would come from your PostgreSQL queries
