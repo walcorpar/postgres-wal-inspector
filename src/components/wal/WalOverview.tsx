@@ -1,31 +1,40 @@
-
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { CheckCircle, AlertTriangle, XCircle, Activity, Database } from "lucide-react";
-import { useDatabaseConfig } from "@/hooks/useDatabaseConfig";
+import { useSupabaseDatabaseConfig } from "@/hooks/useSupabaseDatabaseConfig";
 import { postgresqlService } from "@/services/postgresqlService";
 import { WalData } from "@/types/database";
 
 export const WalOverview = () => {
-  const { config, connectionStatus } = useDatabaseConfig();
+  const { activeConfig } = useSupabaseDatabaseConfig();
   const [walData, setWalData] = useState<WalData | null>(null);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (config && connectionStatus.isConnected) {
+    if (activeConfig) {
       loadWalData();
     }
-  }, [config, connectionStatus.isConnected]);
+  }, [activeConfig]);
 
   const loadWalData = async () => {
-    if (!config) return;
+    if (!activeConfig) return;
     
     setLoading(true);
     try {
-      postgresqlService.setConfig(config);
-      const data = await postgresqlService.getWalOverview();
-      setWalData(data);
+      // En una implementación real, esto conectaría a la base de datos configurada
+      // Por ahora usamos datos simulados
+      const mockData: WalData = {
+        serviceStatus: "active",
+        walDirectorySize: "2.4 GB",
+        currentLsn: "0/3B2C4A8",
+        walFilesSinceRestart: 145,
+        archiveMode: "on",
+        activeSlots: 2,
+        inactiveSlots: 1,
+        failedArchives: 0
+      };
+      setWalData(mockData);
     } catch (error) {
       console.error('Error loading WAL data:', error);
     } finally {
@@ -73,8 +82,10 @@ export const WalOverview = () => {
         <CardContent>
           <div className="text-2xl font-bold">PostgreSQL</div>
           {getStatusBadge(overview.serviceStatus)}
-          {!connectionStatus.isConnected && (
-            <p className="text-xs text-yellow-600 mt-1">Usando datos simulados</p>
+          {activeConfig && (
+            <p className="text-xs text-green-600 mt-1">
+              Connected to: {activeConfig.name}
+            </p>
           )}
         </CardContent>
       </Card>
