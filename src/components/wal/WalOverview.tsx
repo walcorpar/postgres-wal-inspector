@@ -1,11 +1,40 @@
 
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { CheckCircle, AlertTriangle, XCircle, Activity, Database } from "lucide-react";
+import { useDatabaseConfig } from "@/hooks/useDatabaseConfig";
+import { postgresqlService } from "@/services/postgresqlService";
+import { WalData } from "@/types/database";
 
 export const WalOverview = () => {
-  // Mock data - in real implementation, this would come from your PostgreSQL queries
-  const overview = {
+  const { config, connectionStatus } = useDatabaseConfig();
+  const [walData, setWalData] = useState<WalData | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (config && connectionStatus.isConnected) {
+      loadWalData();
+    }
+  }, [config, connectionStatus.isConnected]);
+
+  const loadWalData = async () => {
+    if (!config) return;
+    
+    setLoading(true);
+    try {
+      postgresqlService.setConfig(config);
+      const data = await postgresqlService.getWalOverview();
+      setWalData(data);
+    } catch (error) {
+      console.error('Error loading WAL data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Usar datos mock si no hay conexión real
+  const overview = walData || {
     serviceStatus: "active",
     walDirectorySize: "2.4 GB",
     currentLsn: "0/3B2C4A8",
@@ -44,6 +73,9 @@ export const WalOverview = () => {
         <CardContent>
           <div className="text-2xl font-bold">PostgreSQL</div>
           {getStatusBadge(overview.serviceStatus)}
+          {!connectionStatus.isConnected && (
+            <p className="text-xs text-yellow-600 mt-1">Usando datos simulados</p>
+          )}
         </CardContent>
       </Card>
 
